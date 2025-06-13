@@ -1,0 +1,38 @@
+# -----------------------------
+# General
+# -----------------------------
+# 操作系统生成的文件
+.DS_Store
+Thumbs.db
+
+# 日志和临时文件
+*.log
+*.tmp
+
+# -----------------------------
+# Python
+# -----------------------------
+# 编译后的文件
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 虚拟环境
+venv/
+env/
+.venv/
+.env/
+
+# Jupyter Notebook 检查点
+.ipynb_checkpoints/
+
+# -----------------------------
+# Project-specific
+# -----------------------------
+# 忽略大型数据集
+# 如果你确定路径永远是这个，可以用精确路径
+Assignments/A1/cifar-10-python.tar.gz
+Assignments/A1/cifar-10-batches-py/
+
+# 或者，如果你想忽略所有 .tar.gz 文件，可以用下面的通用规则
+# *.tar.gz
