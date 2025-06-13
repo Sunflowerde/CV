@@ -222,7 +222,18 @@ def predict_labels(dists: torch.Tensor, y_train: torch.Tensor, k: int = 1):
     # HINT: Look up the function torch.topk                                  #
     ##########################################################################
     # Replace "pass" statement with your code
-    pass
+    # 我们需要找出所有 train 样本中与 test 样本距离最小的 k 个样本
+    # 统计他们的标签，找出其中出现次数最多的，即为 test 样本的预测标签
+    for col in range(num_test):
+        temp_col = dists[:, col]
+        # 注意 torch.topk 会返回 values 和 index，要把 values 空开
+        _, k_min_index = torch.topk(temp_col, k, largest = False)
+        k_labels = y_train[k_min_index]
+        # 然后需要统计 k_labels 中出现次数最多的标签
+        # torch.argmax 返回最大值所在的索引
+        # torch.bincount 返回每个元素出现的次数，且返回的是第一个出现的最多的，满足题目要求
+        most_frequent_label = torch.argmax(torch.bincount(k_labels)) # 注意这里已经选择了标签，所以下面赋值的时候不再是索引
+        y_pred[col] = most_frequent_label
     ##########################################################################
     #                           END OF YOUR CODE                             #
     ##########################################################################
@@ -246,7 +257,8 @@ class KnnClassifier:
         # `self.x_train` and `self.y_train`, accordingly.                    #
         ######################################################################
         # Replace "pass" statement with your code
-        pass
+        self.x_train = x_train
+        self.y_train = y_train
         ######################################################################
         #                         END OF YOUR CODE                           #
         ######################################################################
@@ -270,7 +282,8 @@ class KnnClassifier:
         # to predict output labels.                                          #
         ######################################################################
         # Replace "pass" statement with your code
-        pass
+        dists = compute_distances_no_loops(self.x_train, x_test)
+        y_test_pred = predict_labels(dists, self.y_train, k)
         ######################################################################
         #                         END OF YOUR CODE                           #
         ######################################################################
@@ -344,7 +357,10 @@ def knn_cross_validate(
     # HINT: torch.chunk                                                      #
     ##########################################################################
     # Replace "pass" statement with your code
-    pass
+    # 这里的分块需要用到 torch.chunk，其作用是把一个 tensor 分成 k 块
+    # 这里是为了交叉验证，选择最好的 k
+    x_train_folds = torch.chunk(x_train, num_folds)
+    y_train_folds = torch.chunk(y_train, num_folds)
     ##########################################################################
     #                           END OF YOUR CODE                             #
     ##########################################################################
@@ -354,7 +370,6 @@ def knn_cross_validate(
     # k_to_accuracies[k] should be a list of length num_folds giving the
     # different accuracies we found trying `KnnClassifier`s using k neighbors.
     k_to_accuracies = {}
-
     ##########################################################################
     # TODO: Perform cross-validation to find the best value of k. For each   #
     # value of k in k_choices, run the k-NN algorithm `num_folds` times; in  #
@@ -365,7 +380,15 @@ def knn_cross_validate(
     # HINT: torch.cat                                                        #
     ##########################################################################
     # Replace "pass" statement with your code
-    pass
+    # 我们需要运行 num_folds 次 KNN，找到每个 k 在每个 fold 下的准确率，全部存储到 k_to_accuracies[k]
+    for k in k_choices:
+        # 拼接 train_set
+        k_to_accuracies[k] = []
+        for i in range(num_folds):
+            temp_x_train = torch.cat(x_train_folds[:i] + x_train_folds[i + 1:]) # 跳过第 i 个拼起来
+            temp_y_train = torch.cat(y_train_folds[:i] + y_train_folds[i + 1:])
+            classifier = KnnClassifier(temp_x_train, temp_y_train)
+            k_to_accuracies[k].append(classifier.check_accuracy(x_train_folds[i], y_train_folds[i], k))
     ##########################################################################
     #                           END OF YOUR CODE                             #
     ##########################################################################
@@ -388,14 +411,13 @@ def knn_get_best_k(k_to_accuracies: Dict[int, List]):
         best_k: best (and smallest if there is a conflict) k value based on
             the k_to_accuracies info.
     """
-    best_k = 0
+    best_k = 10
     ##########################################################################
     # TODO: Use the results of cross-validation stored in k_to_accuracies to #
     # choose the value of k, and store result in `best_k`. You should choose #
     # the value of k that has the highest mean accuracy accross all folds.   #
     ##########################################################################
     # Replace "pass" statement with your code
-    pass
     ##########################################################################
     #                           END OF YOUR CODE                             #
     ##########################################################################
