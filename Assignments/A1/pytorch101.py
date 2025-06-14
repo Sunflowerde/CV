@@ -607,12 +607,15 @@ def mm_on_gpu(x: Tensor, w: Tensor) -> Tensor:
     Returns:
         y: Tensor of shape (A, C) as described above. It should not be in GPU.
     """
-    y = None
     ##########################################################################
     #                      TODO: Implement this function                     #
     ##########################################################################
     # Replace "pass" statement with your code
-    pass
+    y = None
+    x_gpu = x.cuda()
+    w_gpu = w.cuda()
+    y_temp = x_gpu @ w_gpu
+    y = y_temp.cpu()
     ##########################################################################
     #                            END OF YOUR CODE                            #
     ##########################################################################
