@@ -386,7 +386,10 @@ def predict_linear_classifier(W: torch.Tensor, X: torch.Tensor):
     # Implement this method. Store the predicted labels in y_pred.            #
     ###########################################################################
     # Replace "pass" statement with your code
-    pass
+    num_train = X.shape[0]
+    scores = X @ W
+    max_score_index = torch.argmax(scores, dim=1)
+    y_pred = max_score_index
     ###########################################################################
     #                           END OF YOUR CODE                              #
     ###########################################################################
