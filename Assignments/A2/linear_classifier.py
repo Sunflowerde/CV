@@ -220,13 +220,23 @@ def svm_loss_vectorized(
     loss = 0.0
     dW = torch.zeros_like(W)  # initialize the gradient as zero
 
+    num_train = X.shape[0]
     #############################################################################
     # TODO:                                                                     #
     # Implement a vectorized version of the structured SVM loss, storing the    #
     # result in loss.                                                           #
     #############################################################################
     # Replace "pass" statement with your code
-    pass
+    scores = X @ W # scores 的每一行表示 X 的每一行中每一类的得分
+    # 然后需要求出 X 中每一行对应的 y
+    row_index = torch.arange(num_train)
+    label_scores = scores[row_index, y].reshape(num_train, 1) # 高级索引 # reshape 后才可以广播
+    margins = scores - label_scores + 1 # 先利用广播求出 margins, 然后再更新值
+    margins[row_index, y] = 0
+    # 再利用 torch.clamp 来去除小于 0 的值
+    margins = torch.clamp(margins, min=0)
+    # 注意我们的 loss 要取平均值
+    loss = (torch.sum(margins)) / num_train + reg * torch.sum(torch.square(W))
     #############################################################################
     #                             END OF YOUR CODE                              #
     #############################################################################
@@ -241,7 +251,16 @@ def svm_loss_vectorized(
     # loss.                                                                     #
     #############################################################################
     # Replace "pass" statement with your code
-    pass
+    row_index = torch.arange(num_train)
+    grad_scores = torch.zeros_like(scores)
+    # \frac{\partial L}{\partial W} = \frac{\partial L}{\partial S} * \frac{\partial S}{\partial W}
+    # 所以我们先计算 L 对 S 求导，在 margin > 0 的地方，由于是逐元素相加，非零的地方导数为 1，还要统计共有多少个非零的数，并在相应标签处减去这个值
+    # 这里 grad_scores 相当于一个算子，对 X 作用完后效果相当于 loop 版本
+    grad_scores[margins > 0] = 1
+    error_label = torch.sum(grad_scores, dim=1)
+    grad_scores[row_index, y] -= error_label 
+    dW = 1 / num_train * X.T @ grad_scores
+    dW += 2 * reg * W
     #############################################################################
     #                             END OF YOUR CODE                              #
     #############################################################################
