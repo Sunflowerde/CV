@@ -285,7 +285,9 @@ def sample_batch(
     # Hint: Use torch.randint to generate indices.                          #
     #########################################################################
     # Replace "pass" statement with your code
-    pass
+    random_index = torch.randint(0, num_train, (batch_size, ))
+    X_batch = X[random_index]
+    y_batch = y[random_index]
     #########################################################################
     #                       END OF YOUR CODE                                #
     #########################################################################
@@ -353,7 +355,7 @@ def train_linear_classifier(
         # Update the weights using the gradient and the learning rate.          #
         #########################################################################
         # Replace "pass" statement with your code
-        pass
+        W = W - learning_rate * grad
         #########################################################################
         #                       END OF YOUR CODE                                #
         #########################################################################
