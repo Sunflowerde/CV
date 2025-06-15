@@ -155,12 +155,14 @@ def svm_loss_naive(
     for i in range(num_train):
         scores = W.t().mv(X[i])
         correct_class_score = scores[y[i]]
+        loss_count = 0 # 统计所有使 margin > 0 的数量，用于第二项求导
         for j in range(num_classes):
             if j == y[i]:
                 continue
             margin = scores[j] - correct_class_score + 1  # note delta = 1
             if margin > 0:
                 loss += margin
+                loss_count += 1
                 #######################################################################
                 # TODO:                                                               #
                 # Compute the gradient of the SVM term of the loss function and store #
@@ -169,11 +171,11 @@ def svm_loss_naive(
                 # at the same time that the loss is being computed.                   #
                 #######################################################################
                 # Replace "pass" statement with your code
-                pass
+                dW[:, j] += X[i]
                 #######################################################################
                 #                       END OF YOUR CODE                              #
                 #######################################################################
-
+        dW[:, y[i]] -= loss_count * X[i]
     # Right now the loss is a sum over all training examples, but we want it
     # to be an average instead so we divide by num_train.
     loss /= num_train
@@ -187,7 +189,8 @@ def svm_loss_naive(
     # and add it to dW. (part 2)                                                #
     #############################################################################
     # Replace "pass" statement with your code
-    pass
+    dW /= num_train # loss function 通常都需要除以 n
+    dW += 2 * reg * W
     #############################################################################
     #                             END OF YOUR CODE                              #
     #############################################################################
